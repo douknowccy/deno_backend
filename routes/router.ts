@@ -1,10 +1,18 @@
-import { Router } from "https://deno.land/x/oak@v12.1.0/mod.ts";
-import { register } from "../controller/userController.ts";
-
+import { Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import {
+  register,
+  login,
+  logout,
+  refresh,
+} from "../controller/userController.ts";
 
 const router = new Router();
 
-router.post("/register",register)
+router
+  .post("/register", register)
+  .post("/login", login)
+  .get("/logout", logout)
+  .get("/refresh", refresh);
 //   .get("/beers", getBeers)
 //   .get("/beers/:id", getBeerDetails)
 //   .post("/beers", createBeer)
