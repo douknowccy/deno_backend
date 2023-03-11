@@ -2,7 +2,6 @@ import pool from "../db/postgres.ts";
 import {
   create,
   getNumericDate,
-  verify,
 } from "https://deno.land/x/djwt@v2.8/mod.ts";
 import redis from "../db/redis.ts";
 import { crypto } from "https://deno.land/std@0.179.0/crypto/mod.ts";
@@ -12,7 +11,7 @@ import {
   PoolClient,
   Transaction,
 } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
-import { AllStatus, AllStatusMsg } from "../utils/httpStatus.ts";
+import { verifyJwt } from "../utils/jwt.ts";
 interface LoginProps {
   account: string;
   password: string;
@@ -133,9 +132,8 @@ export const loginUser = async ({ account, password }: LoginProps) => {
 
   const { refreshToken, authorization } = await gernerateJwt({});
 
-    // 更新新的refresh token
-    await redis.set(`jwt_refreshToken_${account}`, refreshToken!);
-  
+  // 更新新的refresh token
+  await redis.set(`jwt_refreshToken_${account}`, refreshToken!);
 
   return { ...returnParams, authorization, refreshToken };
 };
@@ -145,7 +143,7 @@ export const logoutUser = async ({ account }: { account: string }) => {
   };
   const client = await pool.connect();
   const { rows } = await isAccountExistedOnDb(client, account);
-  client.end()
+  client.end();
   if (rows.length === 0) {
     return { ...returnParams, error: "查無此帳號" };
   }
@@ -155,19 +153,29 @@ export const refreshUserToken = async ({ account }: { account: string }) => {
   const returnParams = {
     error: "",
   };
-  const isRefreshTokenExisted = await redis.get(`jwt_refreshToken_${account}`);
-  if (!isRefreshTokenExisted) {
+  const refreshTokenExistedInRedis = await redis.get(
+    `jwt_refreshToken_${account}`
+  );
+  if (!refreshTokenExistedInRedis) {
     return {
-     ...returnParams,
-     error:"無refreshToken"
+      ...returnParams,
+      error: "無refreshToken",
     };
   }
+  const isRefreshTokenVerified = await verifyJwt(refreshTokenExistedInRedis);
+  if (!isRefreshTokenVerified) {
+    return {
+      ...returnParams,
+      error: "refreshToken 失效啊寶",
+    };
+  }
+
   const { authorization } = await gernerateJwt({
     isGenerateJWT: true,
     isGenerateRefreshToken: false,
   });
   return {
     authorization,
-    error:""
+    error: "",
   };
 };
