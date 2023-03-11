@@ -12,7 +12,7 @@ router
   .post("/register", register)
   .post("/login", login)
   .post("/logout", logout)
-  .get("/refresh", refresh);
+  .post("/refresh", refresh);
 //   .get("/beers", getBeers)
 //   .get("/beers/:id", getBeerDetails)
 //   .post("/beers", createBeer)

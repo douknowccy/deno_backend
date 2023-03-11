@@ -7,5 +7,6 @@ export const AllStatus = { ...HttpStatus, ...EXTENDS_Status };
 export const AllStatusMsg = {
   [AllStatus.Unauthorized]: "已失效,請重新登錄",
   [AllStatus.NotFound]:"404 請求錯誤",
-  [AllStatus.NotAcceptable]:"參數錯誤"
+  [AllStatus.NotAcceptable]:"參數錯誤",
+  [AllStatus.NeedToRefreshToken]:"請求刷新token"
 };

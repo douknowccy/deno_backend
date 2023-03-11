@@ -4,10 +4,10 @@ import { Context } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 import {
   loginUser,
   logoutUser,
+  refreshUserToken,
   registerUser,
 } from "../services/usersService.ts";
 import { AllStatus, AllStatusMsg } from "../utils/httpStatus.ts";
-import { generateKey } from "../utils/jwt.ts";
 
 export const register = async (ctx: Context) => {
   const {
@@ -19,17 +19,25 @@ export const register = async (ctx: Context) => {
   } = await ctx.request.body().value;
   const responseBody = {
     message: "",
-    successful:true
+    successful: true,
   };
   if (!account || !password) {
     ctx.response.status = AllStatus.NotAcceptable;
-    ctx.response.body = { ...responseBody, message:AllStatusMsg[AllStatus.NotAcceptable],successful:false};
+    ctx.response.body = {
+      ...responseBody,
+      message: AllStatusMsg[AllStatus.NotAcceptable],
+      successful: false,
+    };
     return;
   }
   const data = await registerUser({ account, password });
   if (data.error) {
     ctx.response.status = AllStatus.OK;
-    ctx.response.body = { ...responseBody, message: data.error,successful:false };
+    ctx.response.body = {
+      ...responseBody,
+      message: data.error,
+      successful: false,
+    };
     return;
   }
   ctx.response.status = AllStatus.OK;
@@ -45,11 +53,15 @@ export const login = async (ctx: Context) => {
   } = await ctx.request.body().value;
   const responseBody = {
     message: "",
-    successful:true
+    successful: true,
   };
   if (!account || !password) {
     ctx.response.status = AllStatus.NotAcceptable;
-    ctx.response.body = { ...responseBody, message:AllStatusMsg[AllStatus.NotAcceptable],successful:false};
+    ctx.response.body = {
+      ...responseBody,
+      message: AllStatusMsg[AllStatus.NotAcceptable],
+      successful: false,
+    };
     return;
   }
   const data = await loginUser({ account, password });
@@ -59,7 +71,7 @@ export const login = async (ctx: Context) => {
 export const logout = async (ctx: Context) => {
   const responseBody = {
     message: "",
-    successful:true
+    successful: true,
   };
   const {
     account,
@@ -75,4 +87,31 @@ export const logout = async (ctx: Context) => {
   ctx.response.status = AllStatus.OK;
   ctx.response.body = { ...responseBody, ...data };
 };
-export const refresh = async (ctx: Context) => {};
+export const refresh = async (ctx: Context) => {
+  const responseBody = {
+    message: "",
+    successful: true,
+  };
+
+  const { refreshToken, account } = await ctx.request.body().value;
+  if (!refreshToken || !account) {
+    ctx.response.status = AllStatus.NotAcceptable;
+    ctx.response.body = {
+      ...responseBody,
+      message: AllStatusMsg[AllStatus.NotAcceptable],
+      successful: false,
+    };
+    return;
+  }
+  const { error, authorization } = await refreshUserToken({ account });
+  console.log({error,authorization})
+  if (error) {
+    throw new Error("");
+  }
+  ctx.response.status = AllStatus.OK;
+  ctx.response.body = {
+    ...responseBody,
+    authorization,
+  };
+  return;
+};

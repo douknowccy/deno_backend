@@ -12,6 +12,7 @@ import {
   PoolClient,
   Transaction,
 } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+import { AllStatus, AllStatusMsg } from "../utils/httpStatus.ts";
 interface LoginProps {
   account: string;
   password: string;
@@ -129,14 +130,12 @@ export const loginUser = async ({ account, password }: LoginProps) => {
   if (!isPasswordCorrect) {
     return { ...returnParams, error: "密碼錯誤" };
   }
-  const { JWT_KEY } = await load();
-  const jwtKey = await generateKey(JWT_KEY);
+
   const { refreshToken, authorization } = await gernerateJwt({});
-  const { exp } = await verify(refreshToken!, jwtKey);
-  if (exp && getNumericDate(0) >exp) {
+
     // 更新新的refresh token
     await redis.set(`jwt_refreshToken_${account}`, refreshToken!);
-  }
+  
 
   return { ...returnParams, authorization, refreshToken };
 };
@@ -152,12 +151,15 @@ export const logoutUser = async ({ account }: { account: string }) => {
   }
   await redis.del(`jwt_refreshToken_${account}`);
 };
-export const refreshToken = async ({ account }: { account: string }) => {
+export const refreshUserToken = async ({ account }: { account: string }) => {
+  const returnParams = {
+    error: "",
+  };
   const isRefreshTokenExisted = await redis.get(`jwt_refreshToken_${account}`);
   if (!isRefreshTokenExisted) {
     return {
-      error: "請重新登錄",
-      code: 401,
+     ...returnParams,
+     error:"無refreshToken"
     };
   }
   const { authorization } = await gernerateJwt({
@@ -166,7 +168,6 @@ export const refreshToken = async ({ account }: { account: string }) => {
   });
   return {
     authorization,
-    code: 200,
     error:""
   };
 };
