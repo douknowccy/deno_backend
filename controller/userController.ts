@@ -2,11 +2,11 @@ import { load } from "https://deno.land/std@0.178.0/dotenv/mod.ts";
 import { getNumericDate, verify } from "https://deno.land/x/djwt@v2.8/mod.ts";
 import { Context } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 import {
-  generateKey,
   loginUser,
   logoutUser,
   registerUser,
 } from "../services/usersService.ts";
+import { generateKey } from "../utils/jwt.ts";
 
 export const register = async (ctx: Context) => {
   const {
@@ -17,17 +17,17 @@ export const register = async (ctx: Context) => {
     password: string;
   } = await ctx.request.body().value;
   const responseBody = {
-    msg: "",
+    message: "",
   };
   if (!account || !password) {
     ctx.response.status = 406;
-    ctx.response.body = { ...responseBody, msg: "參數錯誤" };
+    ctx.response.body = { ...responseBody, message: "參數錯誤" };
     return;
   }
   const data = await registerUser({ account, password });
   if (data.error) {
     ctx.response.status = 410;
-    ctx.response.body = { ...responseBody, msg: data.error };
+    ctx.response.body = { ...responseBody, message: data.error };
     return;
   }
   ctx.response.status = 200;
@@ -42,11 +42,11 @@ export const login = async (ctx: Context) => {
     password: string;
   } = await ctx.request.body().value;
   const responseBody = {
-    msg: "",
+    message: "",
   };
   if (!account || !password) {
     ctx.response.status = 406;
-    ctx.response.body = { ...responseBody, msg: "參數錯誤" };
+    ctx.response.body = { ...responseBody, message: "參數錯誤" };
     return;
   }
   const data = await loginUser({ account, password });
@@ -55,7 +55,7 @@ export const login = async (ctx: Context) => {
 };
 export const logout = async (ctx: Context) => {
   const responseBody = {
-    msg: "",
+    message: "",
   };
   const {
     account,
@@ -66,7 +66,7 @@ export const logout = async (ctx: Context) => {
   const authorization = await ctx.request.headers.get("authorization");
   if(!authorization){
     ctx.response.status = 401;
-    ctx.response.body = { ...responseBody, msg: "已過期,請重新登錄" };
+    ctx.response.body = { ...responseBody, message: "已過期,請重新登錄" };
     return;
   }
   const { JWT_KEY } = await load();
@@ -76,7 +76,7 @@ export const logout = async (ctx: Context) => {
   if (!exp) throw new Error("exp undefinded");
   if (getNumericDate(0) > exp) {
     ctx.response.status = 401;
-    ctx.response.body = { ...responseBody, msg: "已過期,請重新登錄" };
+    ctx.response.body = { ...responseBody, message: "已過期,請重新登錄" };
     return;
   }
   const data = await logoutUser({ account });

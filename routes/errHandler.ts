@@ -1,4 +1,5 @@
 import { Context } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import { AllStatus } from "../utils/httpStatus.ts";
 
 //errorHandler.js
 export default async (
@@ -8,7 +9,8 @@ export default async (
   try {
     await nextFn();
   } catch (err) {
-    response.status = 500;
-    response.body = { msg: err.message };
+    const {message} = err
+    response.status = AllStatus.InternalServerError;
+    response.body = { message};
   }
 };
