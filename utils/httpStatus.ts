@@ -5,5 +5,7 @@ enum EXTENDS_Status {
 }
 export const AllStatus = { ...HttpStatus, ...EXTENDS_Status };
 export const AllStatusMsg = {
-  [AllStatus.Unauthorized]: "已過期,請重新登錄",
+  [AllStatus.Unauthorized]: "已失效,請重新登錄",
+  [AllStatus.NotFound]:"404 請求錯誤",
+  [AllStatus.NotAcceptable]:"參數錯誤"
 };

@@ -6,6 +6,7 @@ import {
   logoutUser,
   registerUser,
 } from "../services/usersService.ts";
+import { AllStatus, AllStatusMsg } from "../utils/httpStatus.ts";
 import { generateKey } from "../utils/jwt.ts";
 
 export const register = async (ctx: Context) => {
@@ -18,19 +19,20 @@ export const register = async (ctx: Context) => {
   } = await ctx.request.body().value;
   const responseBody = {
     message: "",
+    successful:true
   };
   if (!account || !password) {
-    ctx.response.status = 406;
-    ctx.response.body = { ...responseBody, message: "參數錯誤" };
+    ctx.response.status = AllStatus.NotAcceptable;
+    ctx.response.body = { ...responseBody, message:AllStatusMsg[AllStatus.NotAcceptable],successful:false};
     return;
   }
   const data = await registerUser({ account, password });
   if (data.error) {
-    ctx.response.status = 410;
-    ctx.response.body = { ...responseBody, message: data.error };
+    ctx.response.status = AllStatus.OK;
+    ctx.response.body = { ...responseBody, message: data.error,successful:false };
     return;
   }
-  ctx.response.status = 200;
+  ctx.response.status = AllStatus.OK;
   ctx.response.body = { ...responseBody, ...data };
 };
 export const login = async (ctx: Context) => {
@@ -43,19 +45,21 @@ export const login = async (ctx: Context) => {
   } = await ctx.request.body().value;
   const responseBody = {
     message: "",
+    successful:true
   };
   if (!account || !password) {
-    ctx.response.status = 406;
-    ctx.response.body = { ...responseBody, message: "參數錯誤" };
+    ctx.response.status = AllStatus.NotAcceptable;
+    ctx.response.body = { ...responseBody, message:AllStatusMsg[AllStatus.NotAcceptable],successful:false};
     return;
   }
   const data = await loginUser({ account, password });
-  ctx.response.status = 200;
+  ctx.response.status = AllStatus.OK;
   ctx.response.body = { ...responseBody, ...data };
 };
 export const logout = async (ctx: Context) => {
   const responseBody = {
     message: "",
+    successful:true
   };
   const {
     account,
@@ -63,27 +67,12 @@ export const logout = async (ctx: Context) => {
     account: string;
     password: string;
   } = await ctx.request.body().value;
-  const authorization = await ctx.request.headers.get("authorization");
-  if(!authorization){
-    ctx.response.status = 401;
-    ctx.response.body = { ...responseBody, message: "已過期,請重新登錄" };
-    return;
-  }
-  const { JWT_KEY } = await load();
-  const jwtKey = await generateKey(JWT_KEY);
 
-  const { exp } = await verify(authorization!, jwtKey);
-  if (!exp) throw new Error("exp undefinded");
-  if (getNumericDate(0) > exp) {
-    ctx.response.status = 401;
-    ctx.response.body = { ...responseBody, message: "已過期,請重新登錄" };
-    return;
-  }
   const data = await logoutUser({ account });
   if (data?.error) {
     throw new Error(data?.error);
   }
-  ctx.response.status = 200;
+  ctx.response.status = AllStatus.OK;
   ctx.response.body = { ...responseBody, ...data };
 };
 export const refresh = async (ctx: Context) => {};

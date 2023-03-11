@@ -11,6 +11,6 @@ export default async (
   } catch (err) {
     const {message} = err
     response.status = AllStatus.InternalServerError;
-    response.body = { message};
+    response.body = { message,successful:false};
   }
 };

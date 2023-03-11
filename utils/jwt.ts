@@ -58,7 +58,6 @@ export const gernerateJwt = async ({
 export const verifyJwt = async (token: string) => {
   const { JWT_KEY } = await load();
   const jwtKey = await generateKey(JWT_KEY);
-
   const data = await verify(token, jwtKey);
   return data;
 };

@@ -19,10 +19,12 @@ const authMiddleware = async (ctx: Context, nextFn: () => Promise<unknown>) => {
       await nextFn();
       return;
     }
-  } catch (_) {
+  } catch (err) {
+    console.log({err})
     ctx.response.status = AllStatus.Unauthorized;
     ctx.response.body = {
         message: AllStatusMsg[AllStatus.Unauthorized],
+        successful:false
     };
   }
 };
