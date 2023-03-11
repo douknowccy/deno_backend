@@ -1,6 +1,6 @@
-import { connect } from "https://deno.land/x/redis@v0.29.2/mod.ts";
+import { connect, Redis } from "https://deno.land/x/redis@v0.29.2/mod.ts";
 // Create a redis connection
-const redis = await connect({
+const redis :Redis= await connect({
   hostname: "0.0.0.0",
   port: 6379,
 });

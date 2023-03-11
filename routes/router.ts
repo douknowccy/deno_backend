@@ -11,7 +11,7 @@ const router = new Router();
 router
   .post("/register", register)
   .post("/login", login)
-  .get("/logout", logout)
+  .post("/logout", logout)
   .get("/refresh", refresh);
 //   .get("/beers", getBeers)
 //   .get("/beers/:id", getBeerDetails)
