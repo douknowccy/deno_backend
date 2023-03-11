@@ -120,6 +120,7 @@ export const loginUser = async ({ account, password }: LoginProps) => {
 
   const client = await pool.connect();
   const { rows } = await isAccountExistedOnDb(client, account);
+  client.end();
   if (rows.length === 0) {
     return { ...returnParams, error: "查無此帳號" };
   }
@@ -132,10 +133,11 @@ export const loginUser = async ({ account, password }: LoginProps) => {
   const jwtKey = await generateKey(JWT_KEY);
   const { refreshToken, authorization } = await gernerateJwt({});
   const { exp } = await verify(refreshToken!, jwtKey);
-  if (exp && getNumericDate(0) <exp) {
+  if (exp && getNumericDate(0) >exp) {
+    // 更新新的refresh token
     await redis.set(`jwt_refreshToken_${account}`, refreshToken!);
   }
-  client.end();
+
   return { ...returnParams, authorization, refreshToken };
 };
 export const logoutUser = async ({ account }: { account: string }) => {
@@ -144,6 +146,7 @@ export const logoutUser = async ({ account }: { account: string }) => {
   };
   const client = await pool.connect();
   const { rows } = await isAccountExistedOnDb(client, account);
+  client.end()
   if (rows.length === 0) {
     return { ...returnParams, error: "查無此帳號" };
   }
