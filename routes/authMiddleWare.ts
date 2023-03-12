@@ -5,7 +5,7 @@ import { Status, StatusMsg } from "../utils/httpStatus.ts";
 const restrictedPaths = ["/logout"];
 
 const authMiddleware = async (ctx: Context, nextFn: () => Promise<unknown>) => {
-  try {
+
     const isNeedAuthorization = restrictedPaths.some((path) =>
       ctx.request.url.pathname.startsWith(path)
     );
@@ -14,7 +14,7 @@ const authMiddleware = async (ctx: Context, nextFn: () => Promise<unknown>) => {
       await nextFn();
       return;
     }
-
+    try {
     const authorization = await ctx.request.headers.get("authorization");
     if (!authorization) {
         throw new Error("")
