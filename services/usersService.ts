@@ -11,7 +11,7 @@ import {
   PoolClient,
   Transaction,
 } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
-import { verifyJwt } from "../utils/jwt.ts";
+import { gernerateJwt, verifyJwt } from "../utils/jwt.ts";
 interface LoginProps {
   account: string;
   password: string;
@@ -26,43 +26,6 @@ export const generateKey = async (secretKey: string) => {
     true,
     ["sign", "verify"]
   );
-};
-
-export const gernerateJwt = async ({
-  isGenerateRefreshToken = true,
-  isGenerateJWT = true,
-}: {
-  isGenerateRefreshToken?: boolean;
-  isGenerateJWT?: boolean;
-}) => {
-  let authorization = null;
-  let refreshToken = null;
-  if (!isGenerateJWT && !isGenerateRefreshToken) {
-    return {
-      authorization,
-      refreshToken,
-    };
-  }
-  const { JWT_KEY } = await load();
-  const key = await generateKey(JWT_KEY);
-  if (isGenerateJWT) {
-    authorization = await create(
-      { alg: "HS512", typ: "JWT" },
-      //  五分鐘 失效 jwt token
-      { exp: getNumericDate(5 * 60), iss: "Falco" },
-      key
-    );
-  }
-
-  if (isGenerateRefreshToken) {
-    refreshToken = await create(
-      { alg: "HS512", typ: "JWT" },
-      //  更新toekn 時效一天
-      { exp: getNumericDate(24 * 60 * 60), iss: "Falco" },
-      key
-    );
-  }
-  return { refreshToken, authorization };
 };
 
 export const isAccountExistedOnDb = async (
@@ -116,6 +79,8 @@ export const registerUser = async ({ account, password }: LoginProps) => {
 export const loginUser = async ({ account, password }: LoginProps) => {
   const returnParams = {
     error: "",
+    authorization:"",
+    refreshToken:""
   };
 
   const client = await pool.connect();

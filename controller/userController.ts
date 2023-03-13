@@ -7,7 +7,8 @@ import {
   registerUser,
 } from "../services/usersService.ts";
 import { Status, StatusMsg } from "../utils/httpStatus.ts";
-
+import { verifyJwt } from "../utils/jwt.ts";
+import moment from "https://deno.land/x/momentjs@2.29.1-deno/mod.ts";
 export const register = async (ctx: Context) => {
   const {
     account,
@@ -30,15 +31,6 @@ export const register = async (ctx: Context) => {
     return;
   }
   const data = await registerUser({ account, password });
-  // if (data.error) {
-  //   ctx.response.status = Status.OK;
-  //   ctx.response.body = {
-  //     ...responseBody,
-  //     message: data.error,
-  //     successful: false,
-  //   };
-  //   return;
-  // }
   ctx.response.status = Status.OK;
   ctx.response.body = { ...responseBody, ...data };
 };
@@ -64,6 +56,19 @@ export const login = async (ctx: Context) => {
     return;
   }
   const data = await loginUser({ account, password });
+  const {exp} = await verifyJwt(data.authorization!)
+  
+  const date = new Date(exp! * 1000); // 將秒數轉換為毫秒數
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // getMonth()方法返回的值從0開始，所以要加上1
+  const day = date.getDate();
+  
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  const second = date.getSeconds();
+  
+  console.log(`${year}-${month}-${day} ${hour}:${minute}:${second}`);
   ctx.response.status = Status.OK;
   ctx.response.body = { ...responseBody, ...data };
 };
